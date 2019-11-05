@@ -1,0 +1,21 @@
+digraph main {
+	graph [fontname = "Input Mono"]
+	node [fontname = "Input Mono"]
+	edge [fontname = "Courier"]
+	subgraph clusterHSM {
+		label="HSM"
+		subgraph clusterlcd {
+			label="LCD"
+			"Display Sprites" -> "Hide Sprites" [label="if(time > 120)/ "]
+			"Hide Sprites" -> "Display Sprites" [label="SIG_INPUT/ "]
+		}
+		subgraph clusterenc {
+			label="Encoder"
+			"encoder goes here"
+		}
+		subgraph clustertmr {
+			label="Timer"
+			"Timer" -> "Timer" [label="/SIG_TICK"]
+		}
+	}
+}

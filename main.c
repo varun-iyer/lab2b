@@ -9,11 +9,11 @@
 
 
 
-static QEvent l_lab2aQueue[30];  
+static QEvent hsmqueue[30];  
 
 QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 	{ (QActive *)0,            (QEvent *)0,          0                    },
-	{ (QActive *)&AO_Lab2A,    l_lab2aQueue,         Q_DIM(l_lab2aQueue)  }
+	{ (QActive *)&machine,    hsm_queue,         Q_DIM(hsm_queue)  }
 };
 
 Q_ASSERT_COMPILE(QF_MAX_ACTIVE == Q_DIM(QF_active) - 1);

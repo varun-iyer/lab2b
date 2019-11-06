@@ -15,8 +15,6 @@ struct hsm  {               //Lab2A State machine
 	uint8_t vol;
 };
 
-struct hsm machine;
-
 static QState hsm_on(struct hsm *mcn);
 static QState hsm_active(struct hsm *mcn);
 static QState hsm_inactive(struct hsm *mcn);

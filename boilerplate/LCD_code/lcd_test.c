@@ -127,7 +127,7 @@ int main()
 	/*
 	 * Initialize the SPI driver so that it is  ready to use.
 	 */
-	spiConfig = XSpi_LookupConfig(XPAR_SPI_DEVICE_ID);
+	spiConfig = XSpi_LookupConfig(XPAR_SPI_0_DEVICE_ID);
 	if (spiConfig == NULL) {
 		xil_printf("Can't find spi device!\n");
 		return XST_DEVICE_NOT_FOUND;

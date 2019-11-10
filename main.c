@@ -86,22 +86,19 @@ u32 setup() {
 }
 
  
-#define LCD_WIDTH 320
-#define LCD_HEIGHT 240
+#define LCD_WIDTH 240
+#define LCD_HEIGHT 320
 #define setPix(x, y) fillRect(x, y, x, y)
 void draw_background () {
-	u32 pixs = 0x333333
-	for(int x = 0; x < LCD_WIDTH; x++) {
-		for(int y = 0; y < LCD_HEIGHT; y++) {
-			setColor((pixs >> 16) & 0xFF, (pixs >> 8) & 0xFF, pixs & 0xFF);
-			setPix(x, y)
-		}
-	}
+	// Draw background
+	u32 bg_color = 0x333333;
+	fillRect(0, 0, LCD_WIDTH, LCD_HEIGHT);
 
-	setColor(255, 255, 255);
-	for(int y = 10; y + 30 < LCD_WIDTH; y += 40) {
-		for(int x = 10; x + 30 < LCD_WIDTH; x += 40) {
-			fillRect(x, y, x + 30; y + 30);
+	// Draw squares
+	setColor(127, 127, 127);
+	for(int y = 5; y + 30 < LCD_HEIGHT; y += 40) {
+		for(int x = 5; x + 30 < LCD_WIDTH; x += 40) {
+			fillRect(x, y, x + 30, y + 30);
 		}
 	}
 }
@@ -109,6 +106,7 @@ void draw_background () {
  
 int main()
 {
+	// TODO Delete if still unneeded after all changes applied
 	int sec = 0;
 	int secTmp;
 	char secStr[4];

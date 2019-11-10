@@ -8,12 +8,13 @@
 #include "xgpio.h" 		// LED driver, used for General purpose I/i
 #include "xspi.h"
 #include "xspi_l.h"
-#include "lcd.h"
+#include "lib/lcd.h"
 
 volatile int timerTrigger = 0;
  
 static XIntc intc;
 static XTmrCtr tmr;
+static XTmrCtr axiTimer;
 static XGpio lcd_gpio;
 static XSpi lcd_spi;
 
@@ -65,9 +66,9 @@ u32 setup() {
 	// Intialize SPI
 	u32 controlReg;
 	XSpi_Config *spiConfig;	/* Pointer to Configuration data */
-	spiConfig = XSpi_LookupConfig(XPAR_SPI_DEVICE_ID);
+	spiConfig = XSpi_LookupConfig(XPAR_SPI_0_DEVICE_ID);
 	status = XSpi_CfgInitialize(&lcd_spi, spiConfig, spiConfig->BaseAddress);
-	chk_status("Cannot find SPI Device!")
+	chk_status("Cannot find SPI Device!");
 	XSpi_Reset(&lcd_spi);
 	controlReg = XSpi_GetControlReg(&lcd_spi);
 	XSpi_SetControlReg(&lcd_spi,

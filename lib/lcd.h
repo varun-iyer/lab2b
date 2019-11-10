@@ -56,10 +56,10 @@
 #define SPI_DC          XPAR_SPI_DC_BASEADDR
 #define B_RS            0x00000001
 
-#define SPI_DTR         XPAR_SPI_BASEADDR + XSP_DTR_OFFSET
-#define SPI_DRR         XPAR_SPI_BASEADDR + XSP_DRR_OFFSET
-#define SPI_IISR        XPAR_SPI_BASEADDR + XSP_IISR_OFFSET
-#define SPI_SR          XPAR_SPI_BASEADDR + XSP_SR_OFFSET
+#define SPI_DTR         XPAR_SPI_0_BASEADDR + XSP_DTR_OFFSET
+#define SPI_DRR         XPAR_SPI_0_BASEADDR + XSP_DRR_OFFSET
+#define SPI_IISR        XPAR_SPI_0_BASEADDR + XSP_IISR_OFFSET
+#define SPI_SR          XPAR_SPI_0_BASEADDR + XSP_SR_OFFSET
 
 #define cbi(reg, bitmask)       Xil_Out32(reg, Xil_In32(reg) & ~(u32)bitmask)
 #define sbi(reg, bitmask)       Xil_Out32(reg, Xil_In32(reg) |= (u32)bitmask)

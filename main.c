@@ -8,12 +8,13 @@
 #include "xgpio.h" 		// LED driver, used for General purpose I/i
 #include "xspi.h"
 #include "xspi_l.h"
-#include "lcd.h"
+#include "lib/lcd.h"
 
 volatile int timerTrigger = 0;
- 
+
 static XIntc intc;
 static XTmrCtr tmr;
+static XTmrCtr axiTimer;
 static XGpio lcd_gpio;
 static XSpi lcd_spi;
 
@@ -65,9 +66,9 @@ u32 setup() {
 	// Intialize SPI
 	u32 controlReg;
 	XSpi_Config *spiConfig;	/* Pointer to Configuration data */
-	spiConfig = XSpi_LookupConfig(XPAR_SPI_DEVICE_ID);
+	spiConfig = XSpi_LookupConfig(XPAR_SPI_0_DEVICE_ID);
 	status = XSpi_CfgInitialize(&lcd_spi, spiConfig, spiConfig->BaseAddress);
-	chk_status("Cannot find SPI Device!")
+	chk_status("Cannot find SPI Device!");
 	XSpi_Reset(&lcd_spi);
 	controlReg = XSpi_GetControlReg(&lcd_spi);
 	XSpi_SetControlReg(&lcd_spi,
@@ -80,6 +81,8 @@ u32 setup() {
 	 
 	Xil_ICacheEnable();
 	Xil_DCacheEnable();
+
+	return status;
 }
 
  
@@ -87,18 +90,18 @@ u32 setup() {
 #define LCD_HEIGHT 240
 #define setPix(x, y) fillRect(x, y, x, y)
 void draw_background () {
-	u32 pixs = 0x333333
+	u32 pixs = 0x333333;
 	for(int x = 0; x < LCD_WIDTH; x++) {
 		for(int y = 0; y < LCD_HEIGHT; y++) {
 			setColor((pixs >> 16) & 0xFF, (pixs >> 8) & 0xFF, pixs & 0xFF);
-			setPix(x, y)
+			setPix(x, y);
 		}
 	}
 
 	setColor(255, 255, 255);
 	for(int y = 10; y + 30 < LCD_WIDTH; y += 40) {
 		for(int x = 10; x + 30 < LCD_WIDTH; x += 40) {
-			fillRect(x, y, x + 30; y + 30);
+			fillRect(x, y, x + 30, y + 30);
 		}
 	}
 }

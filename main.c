@@ -13,7 +13,6 @@
 volatile int timerTrigger = 0;
  
 static XIntc intc;
-static XTmrCtr tmr;
 static XTmrCtr axiTimer;
 static XGpio lcd_gpio;
 static XSpi lcd_spi;
@@ -33,30 +32,35 @@ void TimerCounterHandler(void *CallBackRef, u8 TmrCtrNumber)
 	} while(0)
  
 u32 setup() {
+	Xil_ICacheEnable();
+	Xil_DCacheEnable();
+
 	u32 status;
 
 	// Initialize TmrCtr
 	status = XTmrCtr_Initialize(&axiTimer, XPAR_AXI_TIMER_0_DEVICE_ID);
 	chk_status("Failed to initialize TmrCtr!");
-	XTmrCtr_SetHandler(&axiTimer, TimerCounterHandler, &axiTimer);
-	XTmrCtr_SetOptions(&axiTimer, 0,
-				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFFFF0000); // CHANGE Timer Period here
-	XTmrCtr_Start(&axiTimer, 0);
-	xil_printf("Started timer!\n");
 
 	// Initialize intc
+	status = XIntc_Initialize(&intc, XPAR_INTC_0_DEVICE_ID);
+	chk_status("Failed to initialize Intc!\n");
 	status = XIntc_Connect(&intc,
 				XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR,
 				(XInterruptHandler)XTmrCtr_InterruptHandler,
 				(void *)&axiTimer);
 	chk_status("Failed to connect Intc!\n");
-	status = XIntc_Initialize(&intc, XPAR_INTC_0_DEVICE_ID);
-	chk_status("Failed to initialize Intc!\n");
 	status = XIntc_Start(&intc, XIN_REAL_MODE);
 	chk_status("Failed to start Intc!\n");
 	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR);
 	microblaze_enable_interrupts();
+
+	// Configure TmrCtr
+	XTmrCtr_SetHandler(&axiTimer, TimerCounterHandler, &axiTimer);
+	XTmrCtr_SetOptions(&axiTimer, 0,
+				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
+	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFF000000); // CHANGE Timer Period here
+	XTmrCtr_Start(&axiTimer, 0);
+	xil_printf("Started timer!\n");
 	 
 	// Initialize GPIO 
 	status = XGpio_Initialize(&lcd_gpio, XPAR_SPI_DC_DEVICE_ID);
@@ -79,8 +83,6 @@ u32 setup() {
 	// Init lcd
 	initLCD();
 	 
-	Xil_ICacheEnable();
-	Xil_DCacheEnable();
 }
 
 

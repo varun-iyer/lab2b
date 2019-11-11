@@ -1,120 +1,27 @@
-#include <stdio.h>		// Used for printf()
-#include "xparameters.h"	// Contains hardware addresses and bit masks
-#include "xil_cache.h"		// Cache Drivers
-#include "xintc.h"		// Interrupt Drivers
-#include "xtmrctr.h"		// Timer Drivers
-#include "xtmrctr_l.h" 		// Low-level timer drivers
-#include "xil_printf.h" 	// Used for xil_printf()
-#include "xgpio.h" 		// LED driver, used for General purpose I/i
-#include "xspi.h"
-#include "xspi_l.h"
-#include "lib/lcd.h"
+/*****************************************************************************
+* main.c for Lab2A of ECE 153a at UCSB
+* Date of the Last Update:  October 23,2014
+*****************************************************************************/
 
-volatile int timerTrigger = 0;
- 
-static XIntc intc;
-static XTmrCtr axiTimer;
-static XGpio lcd_gpio;
-static XSpi lcd_spi;
+#include "qpn_port.h"                                       /* QP-nano port */
+#include "bsp.h"                             /* Board Support Package (BSP) */
+#include "lab2a.h"                               /* application interface */
 
 
-void TimerCounterHandler(void *CallBackRef, u8 TmrCtrNumber)
-{
-	timerTrigger = 100;
-}
- 
- 
-#define chk_status(...) do { \
-		if (status != XST_SUCCESS) { \
-			xil_printf(__VA_ARGS__); \
-			return XST_FAILURE; \
-		} \
-	} while(0)
- 
-u32 setup() {
-	Xil_ICacheEnable();
-	Xil_DCacheEnable();
 
-	u32 status;
+static QEvent l_lab2aQueue[30];  
 
-	// Initialize TmrCtr
-	status = XTmrCtr_Initialize(&axiTimer, XPAR_AXI_TIMER_0_DEVICE_ID);
-	chk_status("Failed to initialize TmrCtr!");
+QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
+	{ (QActive *)0,            (QEvent *)0,          0                    },
+	{ (QActive *)&AO_Lab2A,    l_lab2aQueue,         Q_DIM(l_lab2aQueue)  }
+};
 
-	// Initialize intc
-	status = XIntc_Initialize(&intc, XPAR_INTC_0_DEVICE_ID);
-	chk_status("Failed to initialize Intc!\n");
-	status = XIntc_Connect(&intc,
-				XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR,
-				(XInterruptHandler)XTmrCtr_InterruptHandler,
-				(void *)&axiTimer);
-	chk_status("Failed to connect Intc!\n");
-	status = XIntc_Start(&intc, XIN_REAL_MODE);
-	chk_status("Failed to start Intc!\n");
-	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR);
-	microblaze_enable_interrupts();
+Q_ASSERT_COMPILE(QF_MAX_ACTIVE == Q_DIM(QF_active) - 1);
 
-	// Configure TmrCtr
-	XTmrCtr_SetHandler(&axiTimer, TimerCounterHandler, &axiTimer);
-	XTmrCtr_SetOptions(&axiTimer, 0,
-				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFF000000); // CHANGE Timer Period here
-	XTmrCtr_Start(&axiTimer, 0);
-	xil_printf("Started timer!\n");
-	 
-	// Initialize GPIO 
-	status = XGpio_Initialize(&lcd_gpio, XPAR_SPI_DC_DEVICE_ID);
-	chk_status("Failed to initialize GPIO!\n");
-	XGpio_SetDataDirection(&lcd_gpio, 1, 0x0);
-
-	// Intialize SPI
-	u32 controlReg;
-	XSpi_Config *spiConfig;	/* Pointer to Configuration data */
-	spiConfig = XSpi_LookupConfig(XPAR_SPI_0_DEVICE_ID);
-	status = XSpi_CfgInitialize(&lcd_spi, spiConfig, spiConfig->BaseAddress);
-	chk_status("Cannot find SPI Device!");
-	XSpi_Reset(&lcd_spi);
-	controlReg = XSpi_GetControlReg(&lcd_spi);
-	XSpi_SetControlReg(&lcd_spi,
-			(controlReg | XSP_CR_ENABLE_MASK | XSP_CR_MASTER_MODE_MASK) &
-			(~XSP_CR_TRANS_INHIBIT_MASK));
-	XSpi_SetSlaveSelectReg(&lcd_spi, ~0x01);
-
-	// Init lcd
-	initLCD();
-	 
-}
-
- 
-#define LCD_WIDTH 240
-#define LCD_HEIGHT 320
-#define setPix(x, y) fillRect(x, y, x, y)
-void draw_background () {
-	// Draw background
-	u32 bg_color = 0x333333;
-	fillRect(0, 0, LCD_WIDTH, LCD_HEIGHT);
-
-	// Draw squares
-	setColor(127, 127, 127);
-	for(int y = 5; y + 30 < LCD_HEIGHT; y += 40) {
-		for(int x = 5; x + 30 < LCD_WIDTH; x += 40) {
-			fillRect(x, y, x + 30, y + 30);
-		}
-	}
-}
-
- 
-int main()
-{
-	// TODO Delete if still unneeded after all changes applied
-	int sec = 0;
-	int secTmp;
-	char secStr[4];
-
-	setup();
-	 
-	clrScr();
-
-	draw_background();
+// Do not edit main, unless you have a really good reason
+int main(void) {
+	Lab2A_ctor(); // inside of lab2a.c
+	BSP_init(); // inside of bsp.c, starts out empty!
+	QF_run(); // inside of qfn.c
 	return 0;
 }

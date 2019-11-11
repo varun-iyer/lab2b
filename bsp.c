@@ -5,7 +5,7 @@
 *****************************************************************************/
 
 /**/
-#include "qpn_port.h"
+#include "lib/qpn_port.h"
 #include "bsp.h"
 #include "lab2a.h"
 #include "xintc.h"

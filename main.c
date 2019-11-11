@@ -3,7 +3,7 @@
 * Date of the Last Update:  October 23,2014
 *****************************************************************************/
 
-#include "qpn_port.h"                                       /* QP-nano port */
+#include "lib/qpn_port.h"                                       /* QP-nano port */
 #include "bsp.h"                             /* Board Support Package (BSP) */
 #include "lab2a.h"                               /* application interface */
 

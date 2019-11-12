@@ -30,6 +30,16 @@ void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 
 static uint8_t prev_vol = 0;
 #define vol2pix(vol) (vol * (DELTA_VOL) / 0xFF + VOL_X1)
+
+void clr_vol(uint8_t vol) {
+	drw_clr(VOL_X1, VOL_Y1, vol2pix(vol), VOL_Y2);
+}
+
+void init_vol(uint8_t vol) {
+	prev_vol = 0;
+	drw_vol(vol);
+}
+
 void drw_vol(uint8_t vol) {
 	if(vol == prev_vol) return;
 	setColor((VOL_COL >> 16) & 0xFF, (VOL_COL >> 8) & 0xFF, VOL_COL & 0xFF);

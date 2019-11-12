@@ -1,8 +1,8 @@
 #ifndef hsm_h
 #define hsm_h
 void hsm_ctor(void);
-// 120 seconds * ticks per second
-#define INACTIVE_TICKS (120 * 1000)
+// 2 seconds * ticks per second
+#define INACTIVE_TICKS (2 * 100)
 
 
 enum hsm_sig {

@@ -85,7 +85,7 @@ void BSP_init(void) {
 	XTmrCtr_SetHandler(&axiTimer, tmr_handler, &axiTimer);
 	XTmrCtr_SetOptions(&axiTimer, 0,
 				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&axiTimer, 0, 0xF0000000); // CHANGE Timer Period here
+	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFFF00000); // CHANGE Timer Period here
 	XTmrCtr_Start(&axiTimer, 0);
 	xil_printf("Started timer!\n");
 	 

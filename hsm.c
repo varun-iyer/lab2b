@@ -26,16 +26,17 @@ QState hsm_on(hsm *mcn) {
 			return Q_TRAN(&hsm_inactive);
 		case TICK_SIG:
 		case LEFT_SIG:
-			drw_clr(0, 0, LCD_WIDTH, LCD_HEIGHT);
-			drw_vol(mcn->vol);
+			if(mcn->vol > VOL_INC) 
+				mcn->vol -= VOL_INC;
 
-			if(mcn->vol > 0) mcn->vol--;
+			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
 			break;
 		case RIGHT_SIG:
-			drw_vol(mcn->vol);
+			if(mcn->vol < 255 - VOL_INC) 
+				mcn->vol += VOL_INC;
 
-			if(mcn->vol < 255) mcn->vol++;
+			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
 			break;
 
@@ -65,9 +66,11 @@ QState hsm_active(hsm *mcn) {
 QState hsm_inactive(hsm *mcn) {
 	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
-			drw_clr(0, 0, LCD_WIDTH, LCD_HEIGHT);
+			clr_vol(mcn->vol);
 			return Q_HANDLED();
-		case Q_EXIT_SIG: return Q_HANDLED();
+		case Q_EXIT_SIG: 
+			init_vol(mcn->vol);
+			return Q_HANDLED();
 		case TICK_SIG:
 			return Q_HANDLED();
 	}

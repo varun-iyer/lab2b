@@ -28,15 +28,40 @@ void tmr_handler(void *CallBackRef, u8 TmrCtrNumber) {
 	XTmrCtr_WriteReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET, XTmrCtr_ReadReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET | XTC_CSR_INT_OCCURED_MASK));
 }
 
-uint8_t curstate;
 
 enum enc_states {
 	CW_T1, CCW_T1, CW_T2, CCW_T2, REST
 };
 
+#define ENC_BTN_MSK (1 << 4)
+
+// Uses right bits for tmr, left for status (1 - DISABLED)
+uint8_t enc_btn_state = ENC_BTN_MSK;	// Start disabled
+void tick_enc(void) {
+	// If in a disabled state, increment until disabled
+	// bit clears
+	if(enc_btn_state & ENC_BTN_MSK) {
+		enc_btn_state++;
+
+		// Transition back
+		if(!(enc_btn_state & ENC_BTN_MSK)) {
+			volatile Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
+			if(!(dsr & 0x04)) { // Still pushed
+				QActive_postISR((QActive *) &machine, ENC_BTN_SIG);
+			}
+		}
+	}
+}
+
+uint8_t curstate = REST;
+
 void enc_handler(void *baseaddr_p) {
-	Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
+	volatile Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
 	XGpio_InterruptClear(&enc, 1);
+	if(!(dsr & 0x04)) { // For some reason active low
+		enc_btn_state |= ENC_BTN_MSK;
+	}
+
 	switch(dsr & 0b11) {
 		case 0b11:
 			if(curstate == CW_T2) QActive_postISR((QActive *) &machine, LEFT_SIG);

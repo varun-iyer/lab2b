@@ -39,6 +39,10 @@ QState hsm_on(hsm *mcn) {
 			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
 			break;
+		case ENC_BTN_SIG:
+			mcn->vol = 0;
+			drw_vol(mcn->vol);
+			return Q_TRAN(&hsm_active);
 
 	}
 	return Q_SUPER(&QHsm_top);
@@ -52,6 +56,7 @@ QState hsm_active(hsm *mcn) {
 		case Q_EXIT_SIG:
 			return Q_HANDLED();
 		case TICK_SIG:
+			tick_enc();
 			mcn->disp_tmr--;
 			if(mcn->disp_tmr == 0) {
 				return Q_TRAN(&hsm_inactive);
@@ -72,7 +77,7 @@ QState hsm_inactive(hsm *mcn) {
 			init_vol(mcn->vol);
 			return Q_HANDLED();
 		case TICK_SIG:
-			return Q_HANDLED();
+			tick_enc();
 	}
 	return Q_SUPER(&hsm_on);
 }

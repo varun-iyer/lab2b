@@ -12,6 +12,7 @@
 /* bsp functions ..........................................................*/
 
 void BSP_init(void);
+void tick_enc(void);
 #define BSP_showState(prio_, state_) ((void)0)
 
 

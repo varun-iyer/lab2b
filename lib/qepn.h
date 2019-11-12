@@ -290,7 +290,7 @@ void QFsm_init(QFsm *me);
 */
 /*lint -e960 */     /* ignore MISRA Rule 42 (comma operator) for this macro */
 #define Q_TRAN(target_)  \
-    (((QFsm *)me)->state = (QStateHandler)(target_), Q_RET_TRAN)
+    (((QFsm *)mcn)->state = (QStateHandler)(target_), Q_RET_TRAN)
 
 /** \brief Value returned by a state-handler function when it cannot
 * handle the event.
@@ -303,7 +303,7 @@ void QFsm_init(QFsm *me);
 */
 /*lint -e960 */     /* ignore MISRA Rule 42 (comma operator) for this macro */
 #define Q_SUPER(super_)  \
-    (((QFsm *)me)->state = (QStateHandler)(super_),  Q_RET_SUPER)
+    (((QFsm *)mcn)->state = (QStateHandler)(super_),  Q_RET_SUPER)
 
 
 /****************************************************************************/

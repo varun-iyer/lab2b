@@ -3,61 +3,56 @@
 #include "bsp.h"
 #include "hsm.h"
 
-enum hsm_sig {
-	LEFT_SIG = Q_USER_SIG,
-	RIGHT_SIG,
-	TICK_SIG
-};
- 
-struct hsm  {               //Lab2A State machine
-	QActive super_; // inheritance from QP
-	uint32_t disp_tmr; // display timer
-	uint8_t vol;
-};
-
-static QState hsm_on(struct hsm *mcn);
-static QState hsm_active(struct hsm *mcn);
-static QState hsm_inactive(struct hsm *mcn);
+static QState hsm_init(hsm *mcn);
+static QState hsm_on(hsm *mcn);
+static QState hsm_active(hsm *mcn);
+static QState hsm_inactive(hsm *mcn);
  
 void hsm_ctor(void)  {
-	QActive_ctor(&(machine.super_), (QStateHandler) &Lab2A_initial);
+	QActive_ctor(&(machine.super_), (QStateHandler)& hsm_init);
 	machine.disp_tmr = 0;
 	machine.vol = 0;
 }
 
-QState hsm_init(struct hsm *mcn) {
+QState hsm_init(hsm *mcn) {
 	xil_printf("Initializing HSM\r\n");
-    return Q_TRAN(&hsm_top);
+    return Q_TRAN(&hsm_on);
 }
 
-QState hsm_on(struct hsm *mcn) {
-	switch (Q_SIG(me)) {
+QState hsm_on(hsm *mcn) {
+	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
 		case Q_INIT_SIG:
 			return Q_TRAN(&hsm_inactive);
+		case TICK_SIG:
 		case LEFT_SIG:
-			mcn->vol--;
+			drw_clr(0, 0, LCD_WIDTH, LCD_HEIGHT);
+			drw_vol(mcn->vol);
+
+			if(mcn->vol > 0) mcn->vol--;
 			return Q_TRAN(&hsm_active);
 			break;
 		case RIGHT_SIG:
-			mcn->vol++;
+			drw_vol(mcn->vol);
+
+			if(mcn->vol < 255) mcn->vol++;
 			return Q_TRAN(&hsm_active);
 			break;
+
 	}
 	return Q_SUPER(&QHsm_top);
 }
 
-QState hsm_active(struct hsm *mcn) {
-	switch (Q_SIG(me)) {
+QState hsm_active(hsm *mcn) {
+	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
 			mcn->disp_tmr = INACTIVE_TICKS;
+			return Q_HANDLED();
 		case Q_EXIT_SIG:
 			return Q_HANDLED();
 		case TICK_SIG:
-			drw_bkg();
-			drw_vol(mcn->vol);
 			mcn->disp_tmr--;
-			if(disp_tmr == 0) {
+			if(mcn->disp_tmr == 0) {
 				return Q_TRAN(&hsm_inactive);
 			}
 			else {
@@ -67,12 +62,13 @@ QState hsm_active(struct hsm *mcn) {
 	return Q_SUPER(&hsm_on);
 }
 
-QState hsm_inactive(struct hsm *mcn) {
-	switch (Q_SIG(me)) {
+QState hsm_inactive(hsm *mcn) {
+	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
+			drw_clr(0, 0, LCD_WIDTH, LCD_HEIGHT);
+			return Q_HANDLED();
 		case Q_EXIT_SIG: return Q_HANDLED();
 		case TICK_SIG:
-			drw_bkg();
 			return Q_HANDLED();
 	}
 	return Q_SUPER(&hsm_on);

@@ -1,10 +1,14 @@
 #include "lib/lcd.h"
+#include "drw.h"
 #define set_pix(x, y) fillRect(x, y, x, y)
 
-void drw_clear(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+
+void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	u32 bg_color = 0x333333;
 	setColor((bg_color >> 16) & 0xFF, (bg_color >> 8) & 0xFF, bg_color & 0xFF);
 	fillRect(x1, y1, x2, y2);
+
+	// TODO Commented out to test efficiency
 	// Draw squares
 	setColor(127, 127, 127);
 	for(int y = 5; y + 30 < LCD_HEIGHT; y += 40) {

@@ -1,16 +1,20 @@
 #include "lib/qpn_port.h"
 #include "bsp.h"
-#include "lab2a.h"
+//#include "lab2a.h"
 #include "xintc.h"
 #include "xil_exception.h"
+#include "xtmrctr.h"
+#include "hsm.h"
+#include "xil_cache.h"
+#include "xspi.h"
+#include "lib/lcd.h"
+
 
 #define GPIO_CHANNEL1 1
 
 XGpio enc, lcd;
 XTmrCtr ctr;
 XIntc intc;
-
-void debounceInterrupt(); // Write This function
 
 #define chk_status(...) do { \
 		if (status != XST_SUCCESS) { \
@@ -19,18 +23,23 @@ void debounceInterrupt(); // Write This function
 		} \
 	} while(0)
 
-void tmr_handler() {
+void tmr_handler(void *CallBackRef, u8 TmrCtrNumber) {
 	QActive_postISR((QActive *) &machine, TICK_SIG);
 	XTmrCtr_WriteReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET, XTmrCtr_ReadReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET | XTC_CSR_INT_OCCURED_MASK));
 }
 
 uint8_t curstate;
+
+enum enc_states {
+	CW_T1, CCW_T1, CW_T2, CCW_T2, REST
+};
+
 void enc_handler(void *baseaddr_p) {
 	Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
 	XGpio_InterruptClear(&enc, 1);
 	switch(dsr & 0b11) {
 		case 0b11:
-			if(curstate == CW_T2) QActive_postISR((QActive *) &machine, LEFT_SIG)
+			if(curstate == CW_T2) QActive_postISR((QActive *) &machine, LEFT_SIG);
 			if(curstate == CCW_T2) QActive_postISR((QActive *) &machine, RIGHT_SIG);
 			curstate = REST;
 			break;
@@ -45,6 +54,11 @@ void enc_handler(void *baseaddr_p) {
 			break;
 	}
 }
+
+//static XIntc intc;
+static XTmrCtr axiTimer;
+static XGpio lcd_gpio;
+static XSpi lcd_spi;
 
 void BSP_init(void) {
 	Xil_ICacheEnable();
@@ -68,10 +82,10 @@ void BSP_init(void) {
 	chk_status("Failed to start Intc!\n");
 
 	// Configure TmrCtr
-	XTmrCtr_SetHandler(&axiTimer, TimerCounterHandler, &axiTimer);
+	XTmrCtr_SetHandler(&axiTimer, tmr_handler, &axiTimer);
 	XTmrCtr_SetOptions(&axiTimer, 0,
 				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFF000000); // CHANGE Timer Period here
+	XTmrCtr_SetResetValue(&axiTimer, 0, 0xF0000000); // CHANGE Timer Period here
 	XTmrCtr_Start(&axiTimer, 0);
 	xil_printf("Started timer!\n");
 	 
@@ -96,18 +110,19 @@ void BSP_init(void) {
 	// Init lcd
 	initLCD();
 	//initialize encoder
-	XGpio_Initialize(&enc, XPAR_AXI_GPIO_ENC_DEVICE_ID); // init gpio
+	XGpio_Initialize(&enc, XPAR_AXI_GPIO_ROTARY_DEVICE_ID); // init gpio
 	XGpio_SetDataDirection(&enc, 1, 0x01); // input port
 	XGpio_InterruptEnable(&enc, XGPIO_IR_CH1_MASK); // input port
 	XGpio_InterruptGlobalEnable(&enc);
 	XGpio_SetDataDirection(&enc, 1, 0x01); // input port
 	XIntc_Initialize(&intc, XPAR_MICROBLAZE_0_AXI_INTC_DEVICE_ID);
-	XIntc_Connect(&intc, XPAR_MICROBLAZE_0_AXI_INTC_GPIO_ENC_IP2INTC_IRPT_INTR, (XInterruptHandler) enc_handler, &enc);
-	curstate = 0b11
+	XIntc_Connect(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_ROTARY_IP2INTC_IRPT_INTR, (XInterruptHandler) enc_handler, &enc);
+	curstate = 0b11;
 }
+
 /*..........................................................................*/
 void QF_onStartup(void) {                 /* entered with interrupts locked */
-	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_GPIO_ENC_IP2INTC_IRPT_INTR);
+	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_ROTARY_IP2INTC_IRPT_INTR);
 	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR);
 	microblaze_enable_interrupts();
 }

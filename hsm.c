@@ -22,9 +22,11 @@ QState hsm_init(hsm *mcn) {
 QState hsm_on(hsm *mcn) {
 	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
+			drw_clr(0, 0, LCD_WIDTH, LCD_HEIGHT);
 		case Q_INIT_SIG:
 			return Q_TRAN(&hsm_inactive);
 		case TICK_SIG:
+			return Q_HANDLED();
 		case LEFT_SIG:
 			if(mcn->vol > VOL_INC) 
 				mcn->vol -= VOL_INC;
@@ -43,6 +45,18 @@ QState hsm_on(hsm *mcn) {
 			mcn->vol = 0;
 			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
+		case A_SIG:
+			xil_printf("A\n\r");
+			return Q_HANDLED();
+		case B_SIG:
+			xil_printf("A\n\r");
+			return Q_HANDLED();
+		case C_SIG:
+			xil_printf("A\n\r");
+			return Q_HANDLED();
+		case D_SIG:
+			xil_printf("A\n\r");
+			return Q_HANDLED();
 
 	}
 	return Q_SUPER(&QHsm_top);

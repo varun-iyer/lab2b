@@ -9,8 +9,11 @@ enum hsm_sig {
 	LEFT_SIG = Q_USER_SIG,
 	RIGHT_SIG,
 	TICK_SIG,
-	ENC_BTN_SIG
-
+	ENC_BTN_SIG,
+	A_SIG,
+	B_SIG,
+	C_SIG,
+	D_SIG
 };
 
 typedef struct hsmTag {               //Lab2A State machine

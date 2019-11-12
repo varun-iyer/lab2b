@@ -11,6 +11,6 @@ void init_vol(uint8_t vol);
 #define VOL_X2 230
 #define DELTA_VOL VOL_X2 - VOL_X1
 #define VOL_Y1 10
-#define VOL_Y2 30
+#define VOL_Y2 60
 #define VOL_COL 0xEEEEEE
 #define VOL_INC 20	// Volume bar increment

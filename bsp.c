@@ -43,10 +43,10 @@ void enc_handler(void *baseaddr_p) {
 			if(curstate == CCW_T2) QActive_postISR((QActive *) &machine, RIGHT_SIG);
 			curstate = REST;
 			break;
-		case 0b10:
+		case 0b01:
 			curstate = (curstate == REST) ? CCW_T1 : curstate;
 			break;
-		case 0b01:
+		case 0b10:
 			curstate = (curstate == REST) ? CW_T1 : curstate;
 			break;
 		case 0b00:

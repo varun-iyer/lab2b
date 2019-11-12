@@ -20,9 +20,16 @@ void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	}
 }
 
+static uint8_tprev_vol = 0;
+#define vol2pix(vol) (VOL_X1 + (((VOL_X2 - VOL_X1) * 0xFF) / vol))
 void drw_vol(uint8_t vol) {
-	uint16_t mid =  VOL_X1 + ((VOL_X2 - VOL_X1) * 0xFF) / vol;
-	drw_clr(mid + 1, VOL_Y1, VOL_X2, VOL_Y2);
+	if(vol == prev_vol) return;
 	setColor((VOL_COL >> 16) & 0xFF, (VOL_COL >> 8) & 0xFF, VOL_COL & 0xFF);
-	fillRect(VOL_X1, VOL_Y1, mid, VOL_Y2);
+	if(vol > prev_vol) {
+		fillRect(vol2pix(prev_vol), VOL_Y1, vol2pix(vol), VOL_Y2);
+	}
+	else {
+		drw_clr(vol2pix(prev_vol), VOL_Y1, vol2pix(vol), VOL_Y2);
+	}
+	prev_vol = vol;
 }

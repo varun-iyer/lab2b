@@ -63,7 +63,6 @@ uint8_t curstate = REST;
 void enc_handler(void *baseaddr_p) {
 	volatile Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
 
-
 	if(!(dsr & 0x04)) { // For some reason active low
 		enc_btn_state |= ENC_BTN_MSK;
 	}
@@ -104,7 +103,6 @@ void btn_handler(void *baseaddr_p) {
 		return;
 	}
 
-	// tmr_reset();
 	switch(dsr) {
 		case 0x01:
 			// SIG A

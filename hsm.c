@@ -27,20 +27,6 @@ QState hsm_on(hsm *mcn) {
 			return Q_TRAN(&hsm_inactive);
 		case TICK_SIG:
 			return Q_HANDLED();
-		case LEFT_SIG:
-			if(mcn->vol > VOL_INC) 
-				mcn->vol -= VOL_INC;
-
-			drw_vol(mcn->vol);
-			return Q_TRAN(&hsm_active);
-			break;
-		case RIGHT_SIG:
-			if(mcn->vol < 255 - VOL_INC) 
-				mcn->vol += VOL_INC;
-
-			drw_vol(mcn->vol);
-			return Q_TRAN(&hsm_active);
-			break;
 		case ENC_BTN_SIG:
 			mcn->vol = 0;
 			drw_vol(mcn->vol);
@@ -57,6 +43,9 @@ QState hsm_on(hsm *mcn) {
 		case D_SIG:
 			xil_printf("A\n\r");
 			return Q_HANDLED();
+		case E_SIG:
+
+			return Q_HANDLED();
 
 	}
 	return Q_SUPER(&QHsm_top);
@@ -69,6 +58,20 @@ QState hsm_active(hsm *mcn) {
 			return Q_HANDLED();
 		case Q_EXIT_SIG:
 			return Q_HANDLED();
+		case LEFT_SIG:
+			if(mcn->vol > VOL_INC) 
+				mcn->vol -= VOL_INC;
+
+			drw_vol(mcn->vol);
+			return Q_HANDLED();
+			break;
+		case RIGHT_SIG:
+			if(mcn->vol < 255 - VOL_INC) 
+				mcn->vol += VOL_INC;
+
+			drw_vol(mcn->vol);
+			return Q_HANDLED();
+			break;
 		case TICK_SIG:
 			tick_enc();
 			mcn->disp_tmr--;
@@ -93,6 +96,12 @@ QState hsm_inactive(hsm *mcn) {
 		case TICK_SIG:
 			tick_enc();
 			return Q_HANDLED();
+		case LEFT_SIG:
+			drw_vol(mcn->vol);
+			return Q_TRAN(&hsm_active);
+		case RIGHT_SIG:
+			drw_vol(mcn->vol);
+			return Q_TRAN(&hsm_active);
 	}
 	return Q_SUPER(&hsm_on);
 }

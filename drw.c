@@ -11,6 +11,10 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+void drw_txt(char* text) {
+	setFont(BigFont);
+	lcdPrint(text, LCD_WIDTH / 2 - 8, LCD_HEIGHT / 2 - 8);
+}
 
 void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	u32 bg_color = 0x333333;

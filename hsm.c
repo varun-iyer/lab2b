@@ -32,19 +32,19 @@ QState hsm_on(hsm *mcn) {
 			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
 		case A_SIG:
-			xil_printf("A\n\r");
+			drw_txt("A");
 			return Q_HANDLED();
 		case B_SIG:
-			xil_printf("A\n\r");
+			drw_txt("B");
 			return Q_HANDLED();
 		case C_SIG:
-			xil_printf("A\n\r");
+			drw_txt("C");
 			return Q_HANDLED();
 		case D_SIG:
-			xil_printf("A\n\r");
+			drw_txt("D");
 			return Q_HANDLED();
 		case E_SIG:
-
+			drw_txt("E");
 			return Q_HANDLED();
 
 	}

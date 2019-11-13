@@ -132,17 +132,16 @@ void btn_handler(void *baseaddr_p) {
 				btn_state = BTN_D;
 			}
 		break;
-		case 0x16:
+		case 0x10:
 			// SIG E
 			if(btn_state != BTN_E) {
-				QActive_postISR((QActive *) &machine, D_SIG);
+				QActive_postISR((QActive *) &machine, E_SIG);
 				btn_state = BTN_E;
 			}
 			break;
 		default:
 			xil_printf("Invalid btn code %d\n\r", dsr);
 	}
-	xil_printf("Button Handler\n\r");
 	XGpio_InterruptClear(&btn, 1);
 	//lXIntc_Acknowledge(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
 }

@@ -1,8 +1,8 @@
 #ifndef hsm_h
 #define hsm_h
 void hsm_ctor(void);
-// 2 seconds * ticks per second
-#define INACTIVE_TICKS (2 * 100)
+// 2 seconds  * ticks per second
+#define INACTIVE_TICKS (2 * 5)
 
 
 enum hsm_sig {
@@ -13,7 +13,8 @@ enum hsm_sig {
 	A_SIG,
 	B_SIG,
 	C_SIG,
-	D_SIG
+	D_SIG,
+	E_SIG
 };
 
 typedef struct hsmTag {               //Lab2A State machine

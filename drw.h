@@ -6,6 +6,7 @@ void drw_vol(uint8_t vol);
 #define drw_vol_clr() drw_vol(0)
 void clr_vol(uint8_t vol);
 void init_vol(uint8_t vol);
+void drw_txt(char* text);
 
 #define VOL_X1 10
 #define VOL_X2 230

@@ -92,6 +92,7 @@ QState hsm_inactive(hsm *mcn) {
 			return Q_HANDLED();
 		case TICK_SIG:
 			tick_enc();
+			return Q_HANDLED();
 	}
 	return Q_SUPER(&hsm_on);
 }

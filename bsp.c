@@ -30,6 +30,7 @@ static XGpio btn;
 void tmr_handler(void *CallBackRef, u8 TmrCtrNumber) {
 	QActive_postISR((QActive *) &machine, TICK_SIG);
 	XTmrCtr_WriteReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET, XTmrCtr_ReadReg(ctr.BaseAddress, 0, XTC_TCSR_OFFSET | XTC_CSR_INT_OCCURED_MASK));
+
 }
 
 
@@ -37,7 +38,7 @@ enum enc_states {
 	CW_T1, CCW_T1, CW_T2, CCW_T2, REST
 };
 
-#define ENC_BTN_MSK (1 << 4)
+#define ENC_BTN_MSK (1 << 2)
 
 // Uses right bits for tmr, left for status (1 - DISABLED)
 uint8_t enc_btn_state = ENC_BTN_MSK;	// Start disabled
@@ -61,10 +62,13 @@ uint8_t curstate = REST;
 
 void enc_handler(void *baseaddr_p) {
 	volatile Xuint32 dsr = XGpio_DiscreteRead(&enc, 1);
-	XGpio_InterruptClear(&enc, 1);
+
+
 	if(!(dsr & 0x04)) { // For some reason active low
 		enc_btn_state |= ENC_BTN_MSK;
 	}
+
+	//xil_printf("Encoder Handler\n\r");
 
 	switch(dsr & 0b11) {
 		case 0b11:
@@ -82,14 +86,21 @@ void enc_handler(void *baseaddr_p) {
 			curstate = (curstate == CW_T1) ? CW_T2 : ((curstate == CCW_T1) ? CCW_T2 : curstate);
 			break;
 	}
+
+	XGpio_InterruptClear(&enc, 1);
 }
+
+enum btn_states {
+	NONE, BTN_A, BTN_B, BTN_C, BTN_D, BTN_E
+};
+uint8_t btn_state = NONE;
 
 void btn_handler(void *baseaddr_p) {
 	Xuint32 dsr;
 	// figure out which button it was
 	dsr = XGpio_DiscreteRead(&btn, 1);
 	if(dsr == 0) {
-		XGpio_InterruptClear(&btn, XPAR_AXI_GPIO_BTN_IP2INTC_IRPT_MASK);
+		XGpio_InterruptClear(&btn, 1);
 		return;
 	}
 
@@ -97,37 +108,53 @@ void btn_handler(void *baseaddr_p) {
 	switch(dsr) {
 		case 0x01:
 			// SIG A
-			QActive_postISR((QActive *) &machine, A_SIG);
+			if(btn_state != BTN_A) {
+				QActive_postISR((QActive *) &machine, A_SIG);
+				btn_state = BTN_A;
+			}
 			break;
 		case 0x02:
 			// SIG B
-			QActive_postISR((QActive *) &machine, B_SIG);
+			if(btn_state != BTN_B) {
+				QActive_postISR((QActive *) &machine, B_SIG);
+				btn_state = BTN_B;
+			}
 			break;
 		case 0x04:
 			// SIG C
-			QActive_postISR((QActive *) &machine, C_SIG);
+			if(btn_state != BTN_C) {
+				QActive_postISR((QActive *) &machine, C_SIG);
+				btn_state = BTN_C;
+			}
 			break;
 		case 0x08:
 			// SIG D
-			QActive_postISR((QActive *) &machine, D_SIG);
-			break;
+			if(btn_state != BTN_D) {
+				QActive_postISR((QActive *) &machine, D_SIG);
+				btn_state = BTN_D;
+			}
+		break;
 		case 0x16:
 			// SIG E
-			QActive_postISR((QActive *) &machine, D_SIG);
+			if(btn_state != BTN_E) {
+				QActive_postISR((QActive *) &machine, D_SIG);
+				btn_state = BTN_E;
+			}
 			break;
 		default:
 			xil_printf("Invalid btn code %d\n\r", dsr);
 	}
-	XGpio_InterruptClear(&btn, XPAR_AXI_GPIO_BTN_IP2INTC_IRPT_MASK);
-	XIntc_Acknowledge(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
+	xil_printf("Button Handler\n\r");
+	XGpio_InterruptClear(&btn, 1);
+	//lXIntc_Acknowledge(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
 }
 
 //static XIntc intc;
 
 
 void BSP_init(void) {
-	Xil_ICacheEnable();
-	Xil_DCacheEnable();
+	//Xil_ICacheEnable();
+	//Xil_DCacheEnable();
 
 	u32 status;
 
@@ -149,7 +176,7 @@ void BSP_init(void) {
 	XTmrCtr_SetHandler(&axiTimer, tmr_handler, &axiTimer);
 	XTmrCtr_SetOptions(&axiTimer, 0,
 				XTC_INT_MODE_OPTION | XTC_AUTO_RELOAD_OPTION);
-	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFFF00000); // CHANGE Timer Period here
+	XTmrCtr_SetResetValue(&axiTimer, 0, 0xFF000000); // CHANGE Timer Period here
 	XTmrCtr_Start(&axiTimer, 0);
 	xil_printf("Started timer!\n");
 	 
@@ -176,37 +203,38 @@ void BSP_init(void) {
 
 	//initialize encoder
 	XGpio_Initialize(&enc, XPAR_AXI_GPIO_ROTARY_DEVICE_ID); // init gpio
-	XGpio_SetDataDirection(&enc, 1, 0x01); // input port
+	XGpio_SetDataDirection(&enc, 1, 0xf); // input port
 	XGpio_InterruptEnable(&enc, XGPIO_IR_CH1_MASK); // input port
 	XGpio_InterruptGlobalEnable(&enc);
-	XGpio_SetDataDirection(&enc, 1, 0x01); // input port
 	//XIntc_Initialize(&intc, XPAR_MICROBLAZE_0_AXI_INTC_DEVICE_ID);
 	XIntc_Connect(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_ROTARY_IP2INTC_IRPT_INTR, (XInterruptHandler) enc_handler, &enc);
 	curstate = 0b11;
 
 	// Initialize btn
 	status = XGpio_Initialize(&btn, XPAR_AXI_GPIO_BTN_DEVICE_ID);
-	XGpio_SetDataDirection(&btn, 1, 0x1F); // input port
+	XGpio_SetDataDirection(&btn, 1, 0xFF); // input port
 	chk_status("Failed to initialize Btn!");
 
 	//XGpio_SetDataDirection(&btn, 1, 0x01); // input port
 	//XIntc_Initialize(&intc, XPAR_MICROBLAZE_0_AXI_INTC_DEVICE_ID);
 
 	chk_status("Failed to connect btn!");
+	status = XIntc_Connect(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR, (XInterruptHandler) btn_handler, &btn);
 	XGpio_InterruptEnable(&btn, XGPIO_IR_CH1_MASK); // input port
 	XGpio_InterruptGlobalEnable(&btn);
-	XIntc_Connect(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR, (XInterruptHandler) btn_handler, &btn);
 	chk_status("Failed to start Intc!\n");
 
-}
-
-/*..........................................................................*/
-void QF_onStartup(void) {                 /* entered with interrupts locked */
 	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_ROTARY_IP2INTC_IRPT_INTR);
 	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_TIMER_0_INTERRUPT_INTR);
 	XIntc_Enable(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
 	XIntc_Start(&intc, XIN_REAL_MODE);
 	microblaze_enable_interrupts();
+
+}
+
+/*..........................................................................*/
+void QF_onStartup(void) {                 /* entered with interrupts locked */
+
 }
 
 

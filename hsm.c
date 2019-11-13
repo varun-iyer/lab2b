@@ -12,6 +12,7 @@ void hsm_ctor(void)  {
 	QActive_ctor(&(machine.super_), (QStateHandler)& hsm_init);
 	machine.disp_tmr = 0;
 	machine.vol = 0;
+	machine.txt = "A";
 }
 
 QState hsm_init(hsm *mcn) {
@@ -31,21 +32,8 @@ QState hsm_on(hsm *mcn) {
 			mcn->vol = 0;
 			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
-		case A_SIG:
-			drw_txt("A");
-			return Q_HANDLED();
-		case B_SIG:
-			drw_txt("B");
-			return Q_HANDLED();
-		case C_SIG:
-			drw_txt("C");
-			return Q_HANDLED();
-		case D_SIG:
-			drw_txt("D");
-			return Q_HANDLED();
-		case E_SIG:
-			drw_txt("E");
-			return Q_HANDLED();
+
+
 
 	}
 	return Q_SUPER(&QHsm_top);
@@ -81,6 +69,26 @@ QState hsm_active(hsm *mcn) {
 			else {
 				return Q_HANDLED();
 			}
+		case A_SIG:
+					drw_txt("A");
+					mcn->txt = "A";
+					return Q_HANDLED();
+				case B_SIG:
+					drw_txt("B");
+					mcn->txt = "B";
+					return Q_HANDLED();
+				case C_SIG:
+					drw_txt("C");
+					mcn->txt = "C";
+					return Q_HANDLED();
+				case D_SIG:
+					drw_txt("D");
+					mcn->txt = "D";
+					return Q_HANDLED();
+				case E_SIG:
+					drw_txt("E");
+					mcn->txt = "E";
+					return Q_HANDLED();
 	}
 	return Q_SUPER(&hsm_on);
 }
@@ -89,9 +97,11 @@ QState hsm_inactive(hsm *mcn) {
 	switch (Q_SIG(mcn)) {
 		case Q_ENTRY_SIG:
 			clr_vol(mcn->vol);
+			clr_txt();
 			return Q_HANDLED();
 		case Q_EXIT_SIG: 
 			init_vol(mcn->vol);
+			drw_txt(mcn->txt);
 			return Q_HANDLED();
 		case TICK_SIG:
 			tick_enc();
@@ -102,6 +112,21 @@ QState hsm_inactive(hsm *mcn) {
 		case RIGHT_SIG:
 			drw_vol(mcn->vol);
 			return Q_TRAN(&hsm_active);
+		case A_SIG:
+			drw_txt(mcn->txt);
+			return Q_TRAN(&hsm_active);
+		case B_SIG:
+					drw_txt(mcn->txt);
+					return Q_TRAN(&hsm_active);
+		case C_SIG:
+					drw_txt(mcn->txt);
+					return Q_TRAN(&hsm_active);
+		case D_SIG:
+					drw_txt(mcn->txt);
+					return Q_TRAN(&hsm_active);
+		case E_SIG:
+					drw_txt(mcn->txt);
+					return Q_TRAN(&hsm_active);
 	}
 	return Q_SUPER(&hsm_on);
 }

@@ -5,6 +5,7 @@ void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void drw_vol(uint8_t vol);
 #define drw_vol_clr() drw_vol(0)
 void clr_vol(uint8_t vol);
+void clr_txt();
 void init_vol(uint8_t vol);
 void drw_txt(char* text);
 

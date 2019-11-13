@@ -16,6 +16,10 @@ void drw_txt(char* text) {
 	lcdPrint(text, LCD_WIDTH / 2 - 8, LCD_HEIGHT / 2 - 8);
 }
 
+void clr_txt(void) {
+	drw_clr(LCD_WIDTH / 2 - 16, LCD_HEIGHT / 2 - 16, LCD_WIDTH / 2 + 16, LCD_HEIGHT / 2 + 16);
+}
+
 void drw_clr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
 	u32 bg_color = 0x333333;
 	setColor((bg_color >> 16) & 0xFF, (bg_color >> 8) & 0xFF, bg_color & 0xFF);

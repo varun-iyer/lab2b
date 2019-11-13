@@ -21,6 +21,7 @@ typedef struct hsmTag {               //Lab2A State machine
 	QActive super_; // inheritance from QP
 	uint32_t disp_tmr; // display timer
 	uint8_t vol;
+	char* txt;
 } hsm;
 
 hsm machine;

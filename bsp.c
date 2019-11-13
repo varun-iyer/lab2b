@@ -88,6 +88,10 @@ void btn_handler(void *baseaddr_p) {
 	Xuint32 dsr;
 	// figure out which button it was
 	dsr = XGpio_DiscreteRead(&btn, 1);
+	if(dsr == 0) {
+		XGpio_InterruptClear(&btn, XPAR_AXI_GPIO_BTN_IP2INTC_IRPT_MASK);
+		return;
+	}
 
 	// tmr_reset();
 	switch(dsr) {
@@ -114,8 +118,8 @@ void btn_handler(void *baseaddr_p) {
 		default:
 			xil_printf("Invalid btn code %d\n\r", dsr);
 	}
-	//XGpio_InterruptClear(&btn, XPAR_AXI_GPIO_BTN_IP2INTC_IRPT_MASK);
-	//XIntc_Acknowledge(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
+	XGpio_InterruptClear(&btn, XPAR_AXI_GPIO_BTN_IP2INTC_IRPT_MASK);
+	XIntc_Acknowledge(&intc, XPAR_MICROBLAZE_0_AXI_INTC_AXI_GPIO_BTN_IP2INTC_IRPT_INTR);
 }
 
 //static XIntc intc;

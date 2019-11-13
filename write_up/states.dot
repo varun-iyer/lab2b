@@ -6,16 +6,23 @@ digraph main {
 		label="HSM"
 		subgraph clusterlcd {
 			label="LCD"
-			"Display Sprites" -> "Hide Sprites" [label="if(time > 120)/ "]
-			"Hide Sprites" -> "Display Sprites" [label="SIG_INPUT/ "]
+			"Active" -> "Inactive" [label="if(time > 120)/ "]
+			"Inactive" -> "Active" [label="SIG_INPUT/ "]
 		}
 		subgraph clusterenc {
 			label="Encoder"
-			"encoder goes here"
-		}
-		subgraph clustertmr {
-			label="Timer"
-			"Timer" -> "Timer" [label="/SIG_TICK"]
+			11 -> 01 [label="Pin1/"];
+			01 -> 11 [label="Pin1/"];
+			01 -> 00 [label="Pin2/"];
+			11 -> 10 [label="Pin2/"];
+			10 -> 00 [label="Pin1/"];
+			10 -> 11 [label="Pin2/"];
+			00 -> "01'" [label="Pin2/"];
+			00 -> "10'" [label="Pin1/"];
+			"01'" -> 11 [label="Pin1/LEFT_SIG"];
+			"10'" -> 11 [label="Pin2/RIGHT_SIG"];
+			"01'" -> 00 [label="Pin2/"];
+			"10'" -> 00 [label="Pin1/"];
 		}
 	}
 }
